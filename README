@@ -1,0 +1,8 @@
+Project: POOL GAME
+Description: Create a 1 person pool game using turtle and math related libraries. 
+
+(To be modified)
+Objective:
+1. Pool Scenary
+2. Implement an approximation of physics for the collisions
+3. Have other balls with its own data.
