@@ -1,5 +1,5 @@
 # Reinforcement Learning Pool AI
-Description: Create a 1 person pool game using turtle and math related libraries. 
+## Goal: Train an agent to learn how to play pool by trail and error. 
 
 (To be modified)
 Objective:
