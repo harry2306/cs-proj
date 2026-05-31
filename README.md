@@ -2,7 +2,7 @@
 ### Goal: Train an agent to learn how to play pool by trial and error. 
 Description: Using a pool engine contructed from scratch using the Pygame and Math module, a agent will learn to finish a solo game of pool by following a reinforcement learning procedure, enumerated below:
 
-1. 
+table state -> agent chooses a shot -> pool engine simulates the physics -> reward -> new table state
 
 (To be modified)
 Objective:
