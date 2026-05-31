@@ -13,6 +13,7 @@ General Objective:
 6. Experimentation and Evaluation
 
 File System:
+```text
 pool-rl-agent/
 │
 ├── README.md
@@ -48,3 +49,6 @@ pool-rl-agent/
 └── tests/
     ├── test_engine.py
     └── test_env.py
+```
+
+
