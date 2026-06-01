@@ -55,7 +55,7 @@ pool-rl-agent/
 
 ### Reinforcement Learning with PPO
 
-This project will use **Proximal Policy Optimization (PPO)** to train the pool-playing agent. PPO is a reinforcement learning algorithm that is commonly used for environments with continuous action spaces, making it a good fit for this project because a pool shot can be represented by continuous values such as angle and power.
+This project will use **Proximal Policy Optimization (PPO)** to train the learning agent. PPO is a reinforcement learning algorithm that is commonly used for environments with continuous action spaces, making it a good fit for this project because a pool shot can be represented by continuous values such as angle and power.
 
 A good idea would be to begin will be to proceed evalulation with a single ball and see how it preforms on this simple case. 
 
