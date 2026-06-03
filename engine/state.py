@@ -37,11 +37,14 @@ class GlobalState:
     player1: Player | None = None # player 1's Player object
     player2: Player | None = None # player 2's Player object 
     winner: Player | None = None
+    illegal: bool = False
+    just_switched: bool = False
     def __post_init__(self): # list becomes a global at the class level if we don't do this
         if self.balls is None:
             self.balls = []
     def switch(self):
         self.turn = 1 - self.turn
+        self.just_switched = True
     def ball_positions(self):
         list = []
         for b in self.balls:

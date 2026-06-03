@@ -1,5 +1,7 @@
 import math
 import pygame
+import numpy as np
+from PIL import Image 
 import os
 from engine.state import Ball, ShotRecord, Config, Player, GlobalState
 from engine.physics import *
@@ -8,24 +10,34 @@ from engine.physics import *
 
 # ------------------- FILE MANAGEMENT --------------------
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ASSETS_DIR = os.path.join(BASE_DIR, "assets")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) # Location of where you are running your program
+ASSETS_DIR = os.path.join(BASE_DIR, "assets") # Location of where the assets are
+
+# ------------------- TABLE PROPERTIES --------------------
+
+# Note: (0,0) begins at the top-left of the window: positive x-axis right-ward
+WIDTH, HEIGHT = 1200, 700 # Dimensions of the entire window
+TABLE_W, TABLE_H = 821,473 # Dimensions of the table
+SIDE_EMPTY_L = 190 # Length of empty space on the side
+TOP_EMPTY_L = 98 # Length on empty space on the top
+RAIL_THICKNESS = 46 # Thickness of the rail
+
+SIDE_RAILS_W = (WIDTH  - TABLE_W) / 2
+RIGHT = SIDE_RAILS_W + TABLE_W
+BOTTOM_RAIL_H = (HEIGHT - TABLE_H) / 2
+TOP    = BOTTOM_RAIL_H + TABLE_H
 
 
-# ------------------- Configuration   -------------------
-WIDTH, HEIGHT = 1200, 700
-TABLE_W, TABLE_H = 900,450
-LEFT = (WIDTH  - TABLE_W) / 2
-RIGHT = LEFT + TABLE_W
-BOTTOM = (HEIGHT - TABLE_H) / 2
-TOP    = BOTTOM + TABLE_H
-POCKET_R = 27
+POCKET_R = 27 # Radius of the pocket
+POCKETS = [ # establishes the centers of the pocket circles: top-left, bottom-left, top-right, top-middle, bottom-right, bottom-middle
+    (SIDE_EMPTY_L+RAIL_THICKNESS, TOP_EMPTY_L+RAIL_THICKNESS), (SIDE_EMPTY_L+RAIL_THICKNESS,  TOP_EMPTY_L+TABLE_H-RAIL_THICKNESS), (SIDE_EMPTY_L+TABLE_W-RAIL_THICKNESS, TOP_EMPTY_L+RAIL_THICKNESS), (SIDE_EMPTY_L+TABLE_W/2, TOP_EMPTY_L+RAIL_THICKNESS),
+    (SIDE_EMPTY_L+TABLE_W-RAIL_THICKNESS,TOP_EMPTY_L+TABLE_H-RAIL_THICKNESS), (SIDE_EMPTY_L+TABLE_W/2, TOP_EMPTY_L+TABLE_H-RAIL_THICKNESS)
+]
+
+# ------------------- BALL PROPERTIES --------------------
+
 RESTITUTION_BALL = 0.97  # bounciness ball-ball
 RESTITUTION_WALL = 0.90  # bounciness vs cushion
-POCKETS = [
-    (LEFT, BOTTOM), (LEFT, TOP), (RIGHT, BOTTOM), (RIGHT, TOP),
-    ((LEFT+RIGHT)/2, BOTTOM), ((LEFT+RIGHT)/2, TOP)
-]
 ROLLING_C = 0.03 # rolling coefficient
 SLIDING_R = 0.35 # sliding resistance
 G = 2000
@@ -36,10 +48,31 @@ FPS = 144  # higher FPS = more stable collisions
 PHYS_R = 11.5
 BALL_M = 1.0 #ball massTABLE_W, TABLE_H = 900, 450
 DRAW_R = 15
+
+balls = [ # Initializes a list of ball classes and corresponding properties
+        Ball(WIDTH/2-300, HEIGHT/2, 0, 0, PHYS_R, BALL_M, "white", 0, "cue"), 
+        Ball(WIDTH/2+346, HEIGHT/2, 0, 0, PHYS_R, BALL_M, "yellow", 1, "solid"),
+        Ball(WIDTH/2+323, HEIGHT/2+11.5, 0, 0, PHYS_R, BALL_M, "blue", 2, "solid"),
+        Ball(WIDTH/2+300, HEIGHT/2+23, 0, 0, PHYS_R, BALL_M, "red", 3, "solid"),
+        Ball(WIDTH/2+277, HEIGHT/2+34.5, 0, 0, PHYS_R, BALL_M, "purple", 4, "solid"),
+        Ball(WIDTH/2+254, HEIGHT/2-46, 0, 0, PHYS_R, BALL_M, "orange", 5, "solid"),
+        Ball(WIDTH/2+254, HEIGHT/2+23, 0, 0, PHYS_R, BALL_M, "green", 6, "solid"),
+        Ball(WIDTH/2+277, HEIGHT/2-11.5, 0, 0, PHYS_R, BALL_M, "brown", 7, "solid"),
+        Ball(WIDTH/2+300, HEIGHT/2, 0, 0, PHYS_R, BALL_M, "black", 8, "eight"),
+        Ball(WIDTH/2+323, HEIGHT/2-11.5, 0, 0, PHYS_R, BALL_M, "syellow", 9, "striped"),
+        Ball(WIDTH/2+300, HEIGHT/2-23, 0, 0, PHYS_R, BALL_M, "sblue", 10, "striped"),
+        Ball(WIDTH/2+277, HEIGHT/2-34.5, 0, 0, PHYS_R, BALL_M, "sred", 11, "striped"),
+        Ball(WIDTH/2+254, HEIGHT/2+46, 0, 0, PHYS_R, BALL_M, "spurple", 12, "striped"),
+        Ball(WIDTH/2+254, HEIGHT/2-23, 0, 0, PHYS_R, BALL_M, "sorange", 13, "striped"),
+        Ball(WIDTH/2+277, HEIGHT/2+11.5, 0, 0, PHYS_R, BALL_M, "sgreen", 14, "striped"),
+        Ball(WIDTH/2+254, HEIGHT/2, 0, 0, PHYS_R, BALL_M, "sbrown", 15, "striped"),
+    ]
+
+
 #---------------------------------------------------------------
 
-cfg = Config(LEFT, RIGHT, 
-       BOTTOM, TOP, 
+cfg = Config(SIDE_EMPTY_L+RAIL_THICKNESS, SIDE_EMPTY_L+TABLE_W-RAIL_THICKNESS, 
+       TOP_EMPTY_L+RAIL_THICKNESS, TOP_EMPTY_L+TABLE_H-RAIL_THICKNESS, 
        POCKET_R, POCKETS,
        RESTITUTION_BALL, RESTITUTION_WALL,
        ROLLING_C, SLIDING_R,
@@ -58,7 +91,7 @@ def return_path(image):
 
 def load_sprites():
     """
-    Loads a scaled down version of the pngs in a list and returns it
+    Loads a scaled down version of the pngs in a dictionary and returns it
     """
     BALL_IMGS = {
         "white": pygame.image.load(return_path("cue.png")).convert_alpha(),
@@ -85,9 +118,9 @@ def load_sprites():
     return BALL_IMGS
 
 def rotation_cache(img, step_deg = 6):
-    """
-    returns a list of a image begin rotated around
-    """
+    '''
+    Returns a list of an image begin rotated around in a list as a Pygame surface object
+    '''
     cache = []
     for i in range(0,360, step_deg):
         cache.append(pygame.transform.rotate(img,-i))
@@ -120,77 +153,96 @@ def solid_or_striped(b: Ball):
         return "striped"
     
 
-balls = [
-        Ball(WIDTH/2-300, HEIGHT/2, 0, 0, PHYS_R, BALL_M, "white", 0, "cue"), 
-        Ball(WIDTH/2+346, HEIGHT/2, 0, 0, PHYS_R, BALL_M, "yellow", 1, "solid"),
-        Ball(WIDTH/2+323, HEIGHT/2+11.5, 0, 0, PHYS_R, BALL_M, "blue", 2, "solid"),
-        Ball(WIDTH/2+300, HEIGHT/2+23, 0, 0, PHYS_R, BALL_M, "red", 3, "solid"),
-        Ball(WIDTH/2+277, HEIGHT/2+34.5, 0, 0, PHYS_R, BALL_M, "purple", 4, "solid"),
-        Ball(WIDTH/2+254, HEIGHT/2-46, 0, 0, PHYS_R, BALL_M, "orange", 5, "solid"),
-        Ball(WIDTH/2+254, HEIGHT/2+23, 0, 0, PHYS_R, BALL_M, "green", 6, "solid"),
-        Ball(WIDTH/2+277, HEIGHT/2-11.5, 0, 0, PHYS_R, BALL_M, "brown", 7, "solid"),
-        Ball(WIDTH/2+300, HEIGHT/2, 0, 0, PHYS_R, BALL_M, "black", 8, "eight"),
-        Ball(WIDTH/2+323, HEIGHT/2-11.5, 0, 0, PHYS_R, BALL_M, "syellow", 9, "striped"),
-        Ball(WIDTH/2+300, HEIGHT/2-23, 0, 0, PHYS_R, BALL_M, "sblue", 10, "striped"),
-        Ball(WIDTH/2+277, HEIGHT/2-34.5, 0, 0, PHYS_R, BALL_M, "sred", 11, "striped"),
-        Ball(WIDTH/2+254, HEIGHT/2+46, 0, 0, PHYS_R, BALL_M, "spurple", 12, "striped"),
-        Ball(WIDTH/2+254, HEIGHT/2-23, 0, 0, PHYS_R, BALL_M, "sorange", 13, "striped"),
-        Ball(WIDTH/2+277, HEIGHT/2+11.5, 0, 0, PHYS_R, BALL_M, "sgreen", 14, "striped"),
-        Ball(WIDTH/2+254, HEIGHT/2, 0, 0, PHYS_R, BALL_M, "sbrown", 15, "striped"),
-    ]
 
 
-# ------------------- Game -------------------
+#------------------- MAIN GAME LOOP --------------------
 def main():
-    pygame.init() 
-    screen = pygame.display.set_mode((WIDTH, HEIGHT)) 
-    clock = pygame.time.Clock() # creates clock object that helps measure time
-    balls_imgs = load_sprites()
-    cache_rot = {}
-    for key, img in balls_imgs.items():
+    # ------- PYGAME PRELIMINARIES & IMAGE LOADING ---------
+
+    pygame.init() # Initializes several pygame features
+    screen = pygame.display.set_mode((WIDTH, HEIGHT)) # Creates the game window
+    pygame.display.set_caption("Pool Game") # Titles the tab
+    clock = pygame.time.Clock() # Creates clock object to measure time
+    balls_imgs = load_sprites() # Loads all the images from assets and returns a dictionary containing and returns a Pygame Surface object 
+    cache_rot = {} # dictionary that holds for each colored ball the rotated images
+    for key, img in balls_imgs.items(): # key is color and img is the Pygame object
         cache_rot[key] = rotation_cache(img)
-    player1 = Player()
+    table = pygame.image.load(return_path("table.png")).convert_alpha()
+    pocket_img =  pygame.image.load(return_path("pocket.png")).convert_alpha()
+    w = pocket_img.get_width()
+    scale = 50 / w
+    pocket_img = pygame.transform.smoothscale(pocket_img, (scale*w, scale*w))
+    cue_img = pygame.image.load(return_path("cue.png")).convert_alpha()
+    cue_img = pygame.transform.smoothscale(cue_img, (DRAW_R*2, DRAW_R*2))
+    cursor_img = pygame.image.load(return_path("cursor.png")).convert_alpha()
+
+    
+    # ------ GLOBAL & PLAYER CONFIGURATION -------
+
+    player1 = Player() # Player classes for each player 1 & 2
     player2 = Player()
-    global_state = GlobalState()
-    i=1
+    global_state = GlobalState() # Class of the current state of affairs
     global_state.player1 = player1
     global_state.player2 = player2
     global_state.balls = balls
-    AIMING = False
-    PROCESSING = False
-    HALT = True
     cue = global_state.balls[0]
-    running = True
+
+    # ------ INPUT CONFIGURATION -------
+
+    AIMING = False # Condition where we are aiming
+    PROCESSING = False
+    HALT = True # Condition where all balls have stopped moving
+    running = True # condition that the game is running
+
+
+
+    i=1
     currentshot = ShotRecord()
     cnt = 1
     font = pygame.font.Font(None,36)
     done = False
     text2 = font.render("Choose striped or solids:", True, (255,255,255))
     skip = False
-    player1 = Player()
-    player2  = Player()
+
     switch = False
     illegal = False
-    pygame.display.set_caption("Pool Game")
+
+
+    '''
+    THE GENERAL WORKFLOW
+                                            ______________
+                                            | IF RUNNING |
+                                             0 /       \ 1
+                                         |quit|     |check everything is halted|
+                                                      0 /        |      \ 1
+                                                       /         |       \ 
+                                    |only update physics state|  |      |check queue for inputs|
+                                            /                    |
+                                           /             |Scratch Ball Placement Needed|
+                                |transf. active balls|  
+                                          |
+                                |if no active balls|
+                                          |
+                                    |HALT is TRUE|
+
+    '''
+    
     while running: # while-loop will equate to one frame
-        dt_frame = clock.tick(FPS) / 1000.0 # clock.tick(FPS) returns the time since the last frame in (ms)
-        dt = dt_frame / SUBSTEPS #dt_frame time since last frame in (s) split into SUBSTEPS parts
+        dt_frame = clock.tick(FPS) / 1000.0 # clock.tick(FPS) returns the time since the last frame in (s) & sets max FPS
+        dt = dt_frame / SUBSTEPS #dt_frame split into SUBSTEPS parts
         
-        if global_state.turn == 0:
+        if global_state.turn == 0: # if player 1's turn 
             if not skip and not done and any (1 <= x <= 7 for x in currentshot.pocketed_balls) and any(9 <= x <= 15 for x in currentshot.pocketed_balls):
                     skip = True
                     text = ""
-            if cue.alive == False and HALT:
-                cue.alive = True
-                print("hi")
-                global_state.switch()
-                switch = True
-            for event in pygame.event.get(): #pygame.event is all the events currently waiting in the queue
+        if cue.alive == False and HALT: # Makes the cue reappear
+            cue.alive = True
+            global_state.switch() # goes to the next player
+            switch = True 
+        for event in pygame.event.get(): #pygame.event is all the events currently waiting in the queue
                 if event.type == pygame.QUIT: #event.type tells you what kind of event
                     running = False
-
-                # click-drag-release to strike cue ball (only when table is still)
-                if event.type == pygame.KEYDOWN and not done and skip:
+                if event.type == pygame.KEYDOWN and not done and skip: # click-drag-release to strike cue ball (only when table is still)
                     if event.key == pygame.K_RETURN:
                         done = True
                         skip = False
@@ -203,7 +255,7 @@ def main():
                     cue.x, cue.y = event.pos
                     switch = False
 
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not PROCESSING and not skip: #event.button == 1 checks for left click
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not PROCESSING and not skip: #event.button == 1 checks for SIDE_RAILS_W click
                     AIMING = True
                     cnt = 0
                     if cue.alive and not any_moving(balls):
@@ -228,14 +280,6 @@ def main():
                     power = 6.0  # tune
                     cue.vx = dx * power
                     cue.vy = dy * power
-            '''else:
-                action = AI(global_state,cfg, cfg.POCKETS)
-                if not action:
-                    speed = action.power
-                    vx = speed*math.cos(math.radians(action.angle))
-                    vy = speed*math.sin(math.radians(action.angle))
-                    balls[0].vx = vx
-                    balls[0].vy = vy'''
 
 
         # -------- Physics --------
@@ -248,9 +292,9 @@ def main():
                 integrate(b, dt) # update ball position
                 da = b.w * dt
                 b.angle += da
-                resolve_ball_wall(b, cfg) # check and update for wall collison
+                resolve_ball_wall(b, cfg) # checks and update for wall collison
 
-            # pairwise collisions
+            # checks for pairwise collisions and updates 
             for i in range(len(balls)):
                 for j in range(i + 1, len(balls)):
                     a, b = balls[i], balls[j]
@@ -280,20 +324,10 @@ def main():
         # -------- Draw --------
         screen.fill((15, 15, 15))
 
-        # table felt
-        felt = pygame.image.load(return_path("felt.png")).convert_alpha()
-        screen.blit(felt, (LEFT,BOTTOM))
-
-        rails = pygame.image.load(return_path("rails.png")).convert_alpha()
-        rails = pygame.transform.smoothscale(rails, (900*1.05, 450*1.119))
-        screen.blit(rails,(LEFT-24,BOTTOM-25))
-        # rails
+        
+        screen.blit(table, (0,0))
 
         # pockets
-        pocket_img =  pygame.image.load(return_path("pocket.png")).convert_alpha()
-        w = pocket_img.get_width()
-        scale = 50 / w
-        pocket_img = pygame.transform.smoothscale(pocket_img, (scale*w, scale*w))
         for (px, py) in POCKETS:
             rect = pocket_img.get_rect(center = (px,py))
             screen.blit(pocket_img,rect)
@@ -308,19 +342,18 @@ def main():
             screen.blit(game_over,(center[0]-w/2,center[1]-h/2))
 
         if switch:
-            cursor_img = pygame.image.load(return_path("cue.png")).convert_alpha()
-            cursor_img = pygame.transform.smoothscale(cursor_img, (DRAW_R*2, DRAW_R*2))
             x, y = pygame.mouse.get_pos()
-            screen.blit(cursor_img, (x-PHYS_R,y-PHYS_R))
+            screen.blit(cue_img, (x-PHYS_R,y-PHYS_R))
+            
         else:
-            cursor_img = pygame.image.load(return_path("cursor.png")).convert_alpha()
+            cursor_img1 = cursor_img
             tx, ty = -80,18
             rect = img.get_rect()
             ox, oy = rect.center
             vec = pygame.math.Vector2(tx-ox,ty-oy)
-            w,h = cursor_img.get_size()
-            scaled_cursor = pygame.transform.smoothscale(cursor_img, (w/5,h/5))
-            cursor_img = pygame.transform.rotate(scaled_cursor, 135)
+            w,h = cursor_img1.get_size()
+            scaled_cursor = pygame.transform.smoothscale(cursor_img1, (w/5,h/5))
+            cursor_img1 = pygame.transform.rotate(scaled_cursor, 135)
             pygame.mouse.set_visible(False)
             mx, my = pygame.mouse.get_pos()
             wx = balls[0].x
@@ -328,10 +361,10 @@ def main():
             dx,dy = mx-wx, -1*(my-wy)
             angle = math.degrees(math.atan2(dy,dx))
             v_rot = vec.rotate(-angle)
-            cursor_img = pygame.transform.rotate(cursor_img,angle)
-            rot_rect = cursor_img.get_rect()
+            cursor_img1 = pygame.transform.rotate(cursor_img1,angle)
+            rot_rect = cursor_img1.get_rect()
             rot_rect.center = (mx-v_rot.x, my-v_rot.y)
-            screen.blit(cursor_img, rot_rect)
+            screen.blit(cursor_img1, rot_rect)
 
         # balls
         draw_balls(screen,balls,balls_imgs, cache_rot)
