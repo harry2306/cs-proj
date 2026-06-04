@@ -64,4 +64,7 @@ A good idea would be to begin will be to proceed evalulation with a single ball 
 2. Gymanasium
 3. Numpy
 
+### Task 1:
+For a solo pool game the AI engine should be able to command a shot based on two parameters [angle,power]
+
 
