@@ -59,4 +59,9 @@ This project will use **Proximal Policy Optimization (PPO)** to train the learni
 
 A good idea would be to begin will be to proceed evalulation with a single ball and see how it preforms on this simple case. 
 
+### Packages
+1. Stable_Baselines3
+2. Gymanasium
+3. Numpy
+
 
