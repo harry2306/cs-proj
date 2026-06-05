@@ -66,7 +66,7 @@ A good idea would be to begin will be to proceed evalulation with a single ball 
 reinforcement learning algorithm. 
 ```text
 |Learning Agent| -> |gymnasium| -> |engine|
-  \uparrow                                   |
+  $\uparrow$                                   |
   |_  _  _  _   _    _   _   _   _   _|
             closed loop
 There are several abilities that gymansium need to 
