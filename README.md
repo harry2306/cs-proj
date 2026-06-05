@@ -65,7 +65,7 @@ A good idea would be to begin will be to proceed evalulation with a single ball 
    Gymnasium is the communication system between the engine software and an
 reinforcement learning algorithm. 
 
-|Learning Agent| -> |gymnasium| -> |engine|
+|Learning Agent| -> |gymnasium| -> |engine| \\
   \uparrow                                   |
   |_  _  _  _   _    _   _   _   _   _|
             closed loop
