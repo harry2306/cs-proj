@@ -60,7 +60,7 @@ This project will use **Proximal Policy Optimization (PPO)** to train the learni
 A good idea would be to begin will be to proceed evalulation with a single ball and see how it preforms on this simple case. 
 
 ### Packages
-1. Stable_Baselines3
+1. Stable_Baselines3: PPO Algorithm
 2. Gymanasium: 
    Gymnasium gives a template class that we can inherit from to define our enviroment. To be more exact, it provides a list of methods and attributes that we should overwrite ourselves.
 
