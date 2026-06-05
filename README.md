@@ -63,18 +63,21 @@ A good idea would be to begin will be to proceed evalulation with a single ball 
 1. Stable_Baselines3
 2. Gymanasium
    Gymnasium is the communication system between the engine software and an
-reinforcement learning algorithm. 
+reinforcement learning algorithm. Gymnasium defines an environment as object that an agent can interact with through a fixed API. 
 ```text
 |Learning Agent| -> |gymnasium| -> |engine|
-  ^                                   |
-  |_  _  _  _   _   _   _   _   _   _ |
+  ^                 |    ^            |
+  | _  _  _  _  _  _|    |  _   _   _ |
              closed loop
 
-There are several abilities that gymansium need to 
+There are several abilities that gymansium needs to 
 be able to do:
-1. rest your enviroment [reset()]
+1. should hold some data structure holding data that the agent observes call it the observation.
+2. there should be data indicating the possible choices the agent has.
+3. rest your enviroment [reset()]
     |___ cue ball at the starting position
     |___ object ball at the starting position
+    preferably the agent should know that we reseted so some parameter might need to be passed.
 
 ```
 
