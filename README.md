@@ -62,27 +62,28 @@ A good idea would be to begin will be to proceed evalulation with a single ball 
 ### Packages
 1. Stable_Baselines3
 2. Gymanasium: 
-   Gymnasium is the communication system between the engine software and an
-reinforcement learning algorithm. Gymnasium gives a template that we can inherit from to define our enviroment.
+   Gymnasium gives a template class that we can inherit from to define our enviroment. To be more exact, it provides a list of methods and attributes that we should overwrite ourselves.
+
+The flow of informaiton follows (a continuous flow is called an episode):
 ```text
+               action         action
+                 |              |
 |Learning Agent| -> |gymnasium| -> |engine|
-  ^                 |    ^            |
-  | _  _  _  _  _  _|    |  _   _   _ |
-
-There are things the enviroment must hold be able to do:
-1. should have a variable holding data which an agent can observe, call it the observation.
-2. should have a variable holding the action.
-3. should have a variable holding the reward.
-3. fucntion that rests your enviroment [reset()]
-    |___ cue ball at the starting position
-    |___ object ball at the starting position
-    preferably the agent should know that we reseted so some parameter might need to be passed.
-4. boolean to indication natural termination
-5. boolean to indicate the episode was stopped due to some limit.
-
+  ^                   |   ^            |
+  | _  _  _  _  _  _  |   | _  _  _  _ |
+            |                    |
+        observation          observation
 ```
+Methods to Override:
+1. reset() -- starts a new episode [essential]
+2. step()  -- updates the enviroment according to an action [essential]
+3. render() -- displays the enviroment [optional]
+4. close() -- clean up resources [optional]
 
-4. Numpy
+Attributes to Define:
+1. action_space - declares what actions are valid
+2. observation_space - what an observation is composed of
+3. metadata -- rendering data
 
 ### Task 1:
 For a solo pool game the AI engine should be able to command a shot based on two parameters [angle,power]
