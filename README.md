@@ -68,7 +68,7 @@ The flow of informaiton follows (a continuous flow is called an episode):
 ```text
                action         action
                  |              |
-|Learning Agent| -> |gymnasium| -> |engine|
+|Learning Agent| -> |gymnEnv| -> |engine|
   ^                   |   ^            |
   | _  _  _  _  _  _  |   | _  _  _  _ |
             |                    |
@@ -84,6 +84,8 @@ Attributes to Define:
 1. action_space - declares what actions are valid
 2. observation_space - what an observation is composed of
 3. metadata -- rendering data
+
+In order to implement we define a __init__() for our enviroment class. 
 
 ### Task 1:
 For a solo pool game the AI engine should be able to command a shot based on two parameters [angle,power]
