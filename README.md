@@ -68,7 +68,7 @@ reinforcement learning algorithm. Gymnasium defines an environment as object tha
 |Learning Agent| -> |gymnasium| -> |engine|
   ^                 |    ^            |
   | _  _  _  _  _  _|    |  _   _   _ |
-             closed loop
+             
 
 There are several abilities that gymansium needs to 
 be able to do:
