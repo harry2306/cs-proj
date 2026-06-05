@@ -62,7 +62,17 @@ A good idea would be to begin will be to proceed evalulation with a single ball 
 ### Packages
 1. Stable_Baselines3
 2. Gymanasium
-3. Numpy
+   Gymnasium is the communication system between the engine software and an
+reinforcement learning algorithm. 
+
+|Learning Agent| -> |gymnasium| -> |engine|
+  \uparrow                                   |
+  |_  _  _  _   _    _   _   _   _   _|
+            closed loop
+There are several abilities that gymansium need to 
+be able to do:
+1. rest your enviroment
+4. Numpy
 
 ### Task 1:
 For a solo pool game the AI engine should be able to command a shot based on two parameters [angle,power]
