@@ -69,9 +69,13 @@ reinforcement learning algorithm.
   ^                                   |
   |_  _  _  _   _   _   _   _   _   _ |
              closed loop
+
 There are several abilities that gymansium need to 
 be able to do:
-1. rest your enviroment
+1. rest your enviroment [reset()]
+    |___ cue ball at the starting position
+    |___ object ball at the starting position
+
 ```
 
 4. Numpy
